@@ -1,0 +1,37 @@
+﻿@model Product
+@{
+    ViewData["Title"] = "Ürün Oluştur";
+}
+
+<form asp-controller="Home" asp-action="Edit" method="post" enctype="multipart/form-data">
+    <div class="text-danger" asp-validation-summary="All"></div>
+    <input type="hidden" asp-for="ProductID">
+    <div class="mb-3">
+        <label class="form-label" asp-for="Name">Ürün Adı</label>
+        <input asp-for="Name" class="form-control">
+    </div>
+    <div class="mb-3">
+        <label class="form-label" asp-for="Price">Ürün Fiyatı</label>
+        <input asp-for="Price" class="form-control">
+    </div>
+    <div class="mb-3">
+        <label class="form-label" asp-for="Image">Ürün Resmi</label>
+        <div class="mb-3">
+            <img src="~/img/@Model.Image" alt="" style="width:100px;">
+            <input type="hidden" asp-name="@Model.Image">
+        </div>
+        <input type="file" name="imageFile" id="imageFile" class="form-control">
+        
+    </div>
+    <div class="mb-3">
+        <label class="form-label" asp-for="CategoryID">Ürün Kategorisi</label>
+        <select class="form-select" asp-for="CategoryID" asp-items="ViewBag.Categories">
+            <option value="">Hepsi</option>
+        </select>
+    </div>
+    <div class="mb-3 form-check">
+        <input class="form-check-input" asp-for="isActive">
+        <label asp-for="isActive" class="form-check-label">Ürün Yayında</label>
+    </div>
+    <button class="btn btn-success" type="submit">Kaydet</button>
+</form>

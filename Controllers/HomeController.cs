@@ -21,21 +21,150 @@ public class HomeController : Controller
 
             ViewBag.SearchString = searchString;
 
-            products = products.Where(a => a.Name != null && a.Name.ToLower().Contains(searchString)).ToList();
+            products = products.Where(a =>a.Name!.ToLower().Contains(searchString)).ToList();
         }
 
         if(!String.IsNullOrEmpty(category) && category != "0"){
             products = products.Where(c => c.CategoryID == int.Parse(category)).ToList();
         }
 
-        ViewBag.Categories = new SelectList(Repository.Categories, "CategoryID", "CategoryName");
+        // ViewBag.Categories = new SelectList(Repository.Categories, "CategoryID", "CategoryName", category);
 
-        return View(products);
+        var model = new ProductViewModel{
+            Products = products,
+            Categories = Repository.Categories,
+            SelectedCategory = category
+        };
+
+        return View(model);
     }
 
-    public IActionResult Privacy()
+    [HttpGet]
+    public IActionResult Create()
     {
+        ViewBag.Categories = new SelectList(Repository.Categories, "CategoryID", "CategoryName");
         return View();
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> Create(Product model, IFormFile imageFile)
+    {
+        var extension = "";
+
+        if(imageFile != null){
+            var allowedExtension = new[] {".jpg", ".jpeg", ".png"};
+            extension = Path.GetExtension(imageFile.FileName);
+
+            if(!allowedExtension.Contains(extension)){
+                ModelState.AddModelError("", "Geçerli bir resim seçiniz.");
+            }
+        }
+
+        if(ModelState.IsValid){
+
+            if(imageFile != null){
+                var randomFileName = string.Format($"{Guid.NewGuid().ToString()}{extension}");
+
+                var path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/img", randomFileName);
+                using(var stream = new FileStream(path, FileMode.Create)){
+                    await imageFile.CopyToAsync(stream);
+                }
+                model.Image = randomFileName;
+
+                model.ProductID = Repository.Products.Count + 1;
+                Repository.CreateProduct(model);
+                return RedirectToAction("Index");
+            }
+
+            
+        }
+        ViewBag.Categories = new SelectList(Repository.Categories, "CategoryID", "CategoryName");
+        return View(model);
+    }
+
+    [HttpGet]
+    public IActionResult Edit(int? id){
+
+        if(id == null){
+            return NotFound();
+        }
+        var entity = Repository.Products.FirstOrDefault(p => p.ProductID == id);
+
+        if(entity == null){
+            return NotFound();
+        }
+
+        ViewBag.Categories = new SelectList(Repository.Categories, "CategoryID", "CategoryName");
+        return View(entity);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> Edit(int id, Product model, IFormFile? imageFile){
+
+        if(id != model.ProductID){
+            return NotFound();
+        }
+
+        if(ModelState.IsValid){
+            if(imageFile != null){
+                var extension = Path.GetExtension(imageFile.FileName);
+                var randomFileName = string.Format($"{Guid.NewGuid().ToString()}{extension}");
+                var path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/img", randomFileName);
+
+                using(var stream = new FileStream(path, FileMode.Create)){
+                    await imageFile.CopyToAsync(stream);
+                }
+
+                model.Image = randomFileName;
+            }
+
+            Repository.EditProduct(model);
+            return RedirectToAction("Index");
+        }
+
+        ViewBag.Categories = new SelectList(Repository.Categories, "CategoryID", "CategoryName");
+        return View(model);
+    }
+    
+    public IActionResult Delete(int? id){
+        if(id == null){
+            return NotFound();
+        }
+
+        var entity = Repository.Products.FirstOrDefault(p => p.ProductID == id);
+
+        if(entity == null){
+            return NotFound();
+        }
+
+        return View("DeleteConfirm", entity);
+    }
+
+    [HttpPost]
+    public IActionResult Delete(int id, int ProductID){
+        if(id != ProductID){
+            return NotFound();
+        }
+
+        var entity = Repository.Products.FirstOrDefault(p => p.ProductID == ProductID);
+
+        if(entity == null){
+            return NotFound();
+        }
+
+        Repository.DeleteProduct(entity);
+
+        return RedirectToAction("Index");
+
+    }
+
+    public IActionResult EditProducts(List<Product> Products)
+    {
+        foreach(var product in Products)
+        {
+            Repository.EditIsActive(product);
+        }
+        return RedirectToAction("Index");
     }
     
 }

@@ -1,4 +1,4 @@
-﻿@model IEnumerable<Product>
+﻿@model ProductViewModel
 
 @{
     ViewData["Title"] = "Home Page";
@@ -9,7 +9,10 @@
         <div class="container">
             <div class="row">
                 <div class="col-md-10">
-                    <select name="category" class="form-select" asp-items="ViewBag.Categories">
+                    <select 
+                    name="category" 
+                    class="form-select" 
+                    asp-items="@(new SelectList(Model.Categories, "CategoryID", "CategoryName", Model.SelectedCategory))">
                         <option value="0">Hepsi</option>
                     </select>
                 </div>
@@ -24,31 +27,40 @@
     </form>
 
 </div>
-
-<table class="table table-bordered table-striped">
-    <thead>
-        <tr>
-            <th style="width:100px;">@Html.DisplayNameFor(m =>m.ProductID)</th>
-            <th style="width:100px;">@Html.DisplayNameFor(m =>m.Name)</th>
-            <th style="width:100px;">@Html.DisplayNameFor(m =>m.Image)</th>
-            <th style="width:100px;">@Html.DisplayNameFor(m =>m.Price)</th>
-            <th style="width:100px;">İşlemler</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach(var product in @Model){
+<form asp-action="EditProducts" method="post">
+    <table class="table table-bordered table-striped text-center">
+        <thead>
             <tr>
-                <td>@product.ProductID</td>
-                <td>@product.Name</td>
-                <td>
-                    <img src="~/img/@product.Image" class="img-fluid" alt="@product.Name">
-                </td>
-                <td>@product.Price</td>
-                <td>
-                    <a href="" class = "btn btn-sm btn-warning">Düzenle</a>
-                    <a href="" class="btn btn-sm btn-danger">Sil</a>
-                </td>
+                <th style="width:100px;">@Html.DisplayNameFor(m =>m.Products[0].ProductID)</th>
+                <th style="width:100px;">@Html.DisplayNameFor(m =>m.Products[0].Name)</th>
+                <th style="width:100px;">@Html.DisplayNameFor(m =>m.Products[0].Image)</th>
+                <th style="width:100px;">@Html.DisplayNameFor(m =>m.Products[0].Price)</th>
+                <th style="width:100px;">Ürün Yayında mı?</th>
+                <th style="width:100px;">İşlemler</th>
             </tr>
-        }
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            @for(int i = 0; i < @Model.Products.Count; i++){
+                <tr>
+                    <td>
+                        @Model.Products[i].ProductID
+                        <input type="hidden" asp-for="@Model.Products[i].isActive">
+                    </td>
+                    <td>@Model.Products[i].Name</td>
+                    <td>
+                        <img src="~/img/@Model.Products[i].Image" class="img-fluid" alt="@Model.Products[i].Name">
+                    </td>
+                    <td>@Model.Products[i].Price</td>
+                    <td>
+                        <input class="form-check-input" type="checkbox" asp-for="@Model.Products[i].isActive">
+                    </td>
+                    <td>
+                        <a href="/Home/Edit/@Model.Products[i].ProductID" class = "btn btn-sm btn-warning">Düzenle</a>
+                        <a href="/Home/Delete/@Model.Products[i].ProductID" class="btn btn-sm btn-danger">Sil</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <button type="submit" class="btn btn-success">Kaydet</button>
+</form>

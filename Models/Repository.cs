@@ -30,10 +30,48 @@ namespace FormsApp.Models
             }
         }
 
+        public static void CreateProduct(Product entity){
+            _products.Add(entity);
+        }
+
+        public static void EditProduct(Product updatedProduct){
+            var entity = _products.FirstOrDefault(p => p.ProductID == updatedProduct.ProductID);
+
+            if(entity != null){
+                entity.Name = updatedProduct.Name;
+
+                entity.Price = updatedProduct.Price;
+
+                entity.Image = updatedProduct.Image;
+
+                entity.isActive = updatedProduct.isActive;
+
+                entity.CategoryID = updatedProduct.CategoryID;
+            }
+        }
+
+        public static void EditIsActive(Product updatedProduct){
+            var entity = _products.FirstOrDefault(p => p.ProductID == updatedProduct.ProductID);
+
+            if(entity != null){
+                entity.isActive = updatedProduct.isActive;
+            }
+        }
+
+        public static void DeleteProduct(Product deleteProducts){
+            var entity = _products.FirstOrDefault(p => p.ProductID == deleteProducts.ProductID);
+
+            if(entity != null){
+                _products.Remove(entity);
+            }
+        }
+
         public static List<Category> Categories{
             get{
                 return _categories;
             }
         }
+
+
     }
 }
